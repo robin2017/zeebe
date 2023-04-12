@@ -826,4 +826,6 @@ service Gateway {
   rpc BroadcastSignal (BroadcastSignalRequest) returns (BroadcastSignalResponse) {
 
   }
+
+  rpc StreamJobs (ActivateJobsRequest) returns (stream ActivatedJob) {}
 }

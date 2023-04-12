@@ -39,11 +39,13 @@ final class ClientStreamManager<M extends BufferWriter> {
    * @param serverId id of the server that is added or restarted
    */
   void onServerJoined(final MemberId serverId) {
+    LOG.debug("Adding new stream server {}", serverId);
     servers.add(serverId);
     registry.list().forEach(c -> requestManager.openStream(c, Collections.singleton(serverId)));
   }
 
   void onServerRemoved(final MemberId serverId) {
+    LOG.debug("Removing stream server {}", serverId);
     servers.remove(serverId);
     registry.list().forEach(clientStream -> clientStream.remove(serverId));
   }

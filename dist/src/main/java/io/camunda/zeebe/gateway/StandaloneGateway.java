@@ -8,12 +8,16 @@
 package io.camunda.zeebe.gateway;
 
 import io.atomix.cluster.AtomixCluster;
+import io.atomix.cluster.ClusterMembershipEvent.Type;
 import io.camunda.zeebe.gateway.impl.SpringGatewayBridge;
 import io.camunda.zeebe.gateway.impl.broker.BrokerClient;
 import io.camunda.zeebe.gateway.impl.broker.cluster.BrokerTopologyManager;
 import io.camunda.zeebe.gateway.impl.configuration.GatewayCfg;
+import io.camunda.zeebe.protocol.impl.encoding.BrokerInfo;
+import io.camunda.zeebe.protocol.impl.record.JobActivationPropertiesImpl;
 import io.camunda.zeebe.scheduler.ActorScheduler;
 import io.camunda.zeebe.shared.Profile;
+import io.camunda.zeebe.transport.stream.impl.ClientStreamService;
 import io.camunda.zeebe.util.CloseableSilently;
 import io.camunda.zeebe.util.VersionUtil;
 import io.camunda.zeebe.util.error.FatalErrorHandler;
@@ -94,6 +98,10 @@ public class StandaloneGateway
       LOG.info("Starting standalone gateway with configuration {}", configuration.toJson());
     }
 
+    final var jobStreamServer =
+        new ClientStreamService<JobActivationPropertiesImpl>(
+            atomixCluster.getCommunicationService());
+
     gateway = new Gateway(configuration, brokerClient, actorScheduler);
 
     springGatewayBridge.registerBrokerClientSupplier(gateway::getBrokerClient);
@@ -107,7 +115,41 @@ public class StandaloneGateway
     actorScheduler.start();
     atomixCluster.start();
     brokerClient.start();
+    actorScheduler.submitActor(jobStreamServer).join();
     gateway.start().join(30, TimeUnit.SECONDS);
+
+    // TODO: implement as a topology listener
+    atomixCluster
+        .getMembershipService()
+        .addListener(
+            event -> {
+              if (!(event.type() == Type.MEMBER_ADDED || event.type() == Type.MEMBER_REMOVED)) {
+                return;
+              }
+
+              if (BrokerInfo.fromProperties(event.subject().properties()) == null) {
+                return;
+              }
+
+              if (event.type() == Type.MEMBER_ADDED) {
+                jobStreamServer.onServerJoined(event.subject().id());
+              } else if (event.type() == Type.MEMBER_REMOVED) {
+                jobStreamServer.onServerRemoved(event.subject().id());
+              }
+            });
+    atomixCluster
+        .getMembershipService()
+        .getMembers()
+        .forEach(
+            member -> {
+              if (member.equals(atomixCluster.getMembershipService().getLocalMember())) {
+                return;
+              }
+
+              if (BrokerInfo.fromProperties(member.properties()) != null) {
+                jobStreamServer.onServerJoined(member.id());
+              }
+            });
   }
 
   @Override

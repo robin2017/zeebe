@@ -8,8 +8,8 @@
 package io.camunda.zeebe.broker.jobstream;
 
 import io.atomix.cluster.messaging.ClusterEventService;
-import io.camunda.zeebe.engine.processing.streamprocessor.ActivatedJob;
-import io.camunda.zeebe.engine.processing.streamprocessor.JobActivationProperties;
+import io.camunda.zeebe.protocol.impl.record.ActivatedJob;
+import io.camunda.zeebe.protocol.impl.record.JobActivationProperties;
 import io.camunda.zeebe.engine.processing.streamprocessor.JobStreamer;
 import io.camunda.zeebe.transport.stream.api.RemoteStreamer;
 import java.util.Optional;

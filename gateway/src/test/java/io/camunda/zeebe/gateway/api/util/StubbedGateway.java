@@ -51,7 +51,7 @@ public final class StubbedGateway {
     submitActorToActivateJobs((Consumer<ActorControl>) activateJobsHandler);
 
     final EndpointManager endpointManager = new EndpointManager(brokerClient, activateJobsHandler);
-    final GatewayGrpcService gatewayGrpcService = new GatewayGrpcService(endpointManager);
+    final GatewayGrpcService gatewayGrpcService = new GatewayGrpcService(endpointManager, null);
 
     final InProcessServerBuilder serverBuilder =
         InProcessServerBuilder.forName(SERVER_NAME).addService(gatewayGrpcService);

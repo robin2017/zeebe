@@ -7,8 +7,8 @@
  */
 package io.camunda.zeebe.broker.jobstream;
 
-import io.camunda.zeebe.engine.processing.streamprocessor.ActivatedJob;
-import io.camunda.zeebe.engine.processing.streamprocessor.JobActivationProperties;
+import io.camunda.zeebe.protocol.impl.record.ActivatedJob;
+import io.camunda.zeebe.protocol.impl.record.JobActivationProperties;
 import io.camunda.zeebe.engine.processing.streamprocessor.JobStreamer;
 import io.camunda.zeebe.scheduler.ConcurrencyControl;
 import io.camunda.zeebe.scheduler.future.ActorFuture;

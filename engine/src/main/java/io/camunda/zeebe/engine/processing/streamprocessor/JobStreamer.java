@@ -7,6 +7,8 @@
  */
 package io.camunda.zeebe.engine.processing.streamprocessor;
 
+import io.camunda.zeebe.protocol.impl.record.ActivatedJob;
+import io.camunda.zeebe.protocol.impl.record.JobActivationProperties;
 import java.util.Optional;
 import org.agrona.DirectBuffer;
 
@@ -14,7 +16,7 @@ import org.agrona.DirectBuffer;
  * A {@link JobStreamer} allows the engine to push data back to a single gateway (any). It keeps
  * track of multiple {@link JobStream} instances, each with their own jobType.
  *
- * <p>NOTE: {@link JobStream#push(ActivatedJob, ErrorHandler)} is a side effect, and should be
+ * <p>NOTE: {@link JobStream#push( ActivatedJob , ErrorHandler)} is a side effect, and should be
  * treated as a post-commit task for consistency. TODO: see if the platform cannot already enforce
  * with its own implementation.
  *

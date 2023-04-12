@@ -8,9 +8,11 @@
 package io.camunda.zeebe.gateway;
 
 import io.camunda.zeebe.gateway.grpc.ErrorMappingStreamObserver;
+import io.camunda.zeebe.gateway.jobstream.impl.JobClientStreamConsumer;
 import io.camunda.zeebe.gateway.protocol.GatewayGrpc.GatewayImplBase;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsRequest;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsResponse;
+import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.ActivatedJob;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.BroadcastSignalRequest;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.BroadcastSignalResponse;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.CancelProcessInstanceRequest;
@@ -45,13 +47,27 @@ import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.TopologyRequest;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.TopologyResponse;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.UpdateJobRetriesRequest;
 import io.camunda.zeebe.gateway.protocol.GatewayOuterClass.UpdateJobRetriesResponse;
+import io.camunda.zeebe.protocol.impl.record.JobActivationPropertiesImpl;
+import io.camunda.zeebe.transport.stream.api.ClientStreamConsumer;
+import io.camunda.zeebe.transport.stream.api.ClientStreamer;
+import io.camunda.zeebe.util.buffer.BufferUtil;
 import io.grpc.stub.StreamObserver;
+import java.util.UUID;
+import org.agrona.DirectBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GatewayGrpcService extends GatewayImplBase {
-  private final EndpointManager endpointManager;
+  private static final Logger LOGGER = LoggerFactory.getLogger(GatewayGrpcService.class);
 
-  public GatewayGrpcService(final EndpointManager endpointManager) {
+  private final EndpointManager endpointManager;
+  private final ClientStreamer<JobActivationPropertiesImpl> jobStreamer;
+
+  public GatewayGrpcService(
+      final EndpointManager endpointManager,
+      final ClientStreamer<JobActivationPropertiesImpl> jobStreamer) {
     this.endpointManager = endpointManager;
+    this.jobStreamer = jobStreamer;
   }
 
   @Override
@@ -191,5 +207,52 @@ public class GatewayGrpcService extends GatewayImplBase {
       final StreamObserver<BroadcastSignalResponse> responseObserver) {
     endpointManager.broadcastSignal(
         request, ErrorMappingStreamObserver.ofStreamObserver(responseObserver));
+  }
+
+  @Override
+  public void streamJobs(
+      final ActivateJobsRequest request, final StreamObserver<ActivatedJob> responseObserver) {
+    LOGGER.debug("New streamJobs client stream");
+
+    final var observer = ErrorMappingStreamObserver.ofStreamObserver(responseObserver);
+    if (jobStreamer == null) {
+      observer.onError(new UnsupportedOperationException("No job streamer configured"));
+      return;
+    }
+
+    final ClientStreamConsumer jobConsumer = new JobClientStreamConsumer(observer);
+    final DirectBuffer streamType = BufferUtil.wrapString(request.getType());
+    final JobActivationPropertiesImpl metadata = new JobActivationPropertiesImpl();
+
+    // TODO: set properties from request
+
+    observer.setCompression("gzip");
+    observer.setMessageCompression(true);
+    // TODO: add stream and on cancel/close handlers only when observer is ready
+
+    final UUID streamId;
+    try {
+      streamId = jobStreamer.add(streamType, metadata, jobConsumer).join();
+      LOGGER.debug(
+          "Registered job stream to streamer with type [{}] and metadata [{}]",
+          request.getType(),
+          metadata);
+    } catch (final Exception e) {
+      observer.onError(e);
+      LOGGER.warn("Error while adding job stream to streamer", e);
+      // TODO: log the error
+      return;
+    }
+
+    observer.setOnCancelHandler(
+        () -> {
+          LOGGER.debug("Job stream is cancelled, removing from streamer");
+          jobStreamer.remove(streamId);
+        });
+    observer.setOnCloseHandler(
+        () -> {
+          LOGGER.debug("Job stream is closed, removing from streamer");
+          jobStreamer.remove(streamId);
+        });
   }
 }

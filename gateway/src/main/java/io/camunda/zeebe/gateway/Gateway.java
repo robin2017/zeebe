@@ -23,10 +23,12 @@ import io.camunda.zeebe.gateway.interceptors.impl.DecoratedInterceptor;
 import io.camunda.zeebe.gateway.interceptors.impl.IdentityInterceptor;
 import io.camunda.zeebe.gateway.interceptors.impl.InterceptorRepository;
 import io.camunda.zeebe.gateway.query.impl.QueryApiImpl;
+import io.camunda.zeebe.protocol.impl.record.JobActivationPropertiesImpl;
 import io.camunda.zeebe.scheduler.Actor;
 import io.camunda.zeebe.scheduler.ActorSchedulingService;
 import io.camunda.zeebe.scheduler.future.ActorFuture;
 import io.camunda.zeebe.scheduler.future.CompletableActorFuture;
+import io.camunda.zeebe.transport.stream.api.ClientStreamer;
 import io.camunda.zeebe.util.Either;
 import io.grpc.BindableService;
 import io.grpc.Server;
@@ -60,14 +62,24 @@ public final class Gateway {
 
   private Server server;
   private final BrokerClient brokerClient;
+  private final ClientStreamer<JobActivationPropertiesImpl> jobStreamer;
 
   public Gateway(
       final GatewayCfg gatewayCfg,
       final BrokerClient brokerClient,
       final ActorSchedulingService actorSchedulingService) {
+    this(gatewayCfg, brokerClient, actorSchedulingService, null);
+  }
+
+  public Gateway(
+      final GatewayCfg gatewayCfg,
+      final BrokerClient brokerClient,
+      final ActorSchedulingService actorSchedulingService,
+      final ClientStreamer<JobActivationPropertiesImpl> jobStreamer) {
     this.gatewayCfg = gatewayCfg;
     this.brokerClient = brokerClient;
     this.actorSchedulingService = actorSchedulingService;
+    this.jobStreamer = jobStreamer;
 
     healthManager = new GatewayHealthManagerImpl();
   }
@@ -114,7 +126,8 @@ public final class Gateway {
   private Either<Exception, Server> createAndStartServer(
       final ActivateJobsHandler activateJobsHandler) {
     final EndpointManager endpointManager = new EndpointManager(brokerClient, activateJobsHandler);
-    final GatewayGrpcService gatewayGrpcService = new GatewayGrpcService(endpointManager);
+    final GatewayGrpcService gatewayGrpcService =
+        new GatewayGrpcService(endpointManager, jobStreamer);
 
     try {
       final var serverBuilder = serverBuilderFactory.apply(gatewayCfg);
