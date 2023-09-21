@@ -91,8 +91,7 @@ public class StandaloneGateway
     configuration.init();
 
     if (LOG.isInfoEnabled()) {
-      LOG.info("Version: {}", VersionUtil.getVersion());
-      LOG.info("Starting standalone gateway with configuration {}", configuration.toJson());
+      LOG.info("Starting standalone gateway with version {}", VersionUtil.getVersion());
     }
 
     actorScheduler.start();
