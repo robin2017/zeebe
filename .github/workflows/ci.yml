@@ -108,8 +108,6 @@ jobs:
         if: matrix.tcc-enabled
         uses: atomicjar/testcontainers-cloud-setup-action@v1
         with:
-          token: ${{ secrets.TC_CLOUD_TOKEN }}
-          logfile: .testcontainers-agent.log
           action: terminate
       - name: Duplicate Test Check
         uses: ./.github/actions/check-duplicate-tests
