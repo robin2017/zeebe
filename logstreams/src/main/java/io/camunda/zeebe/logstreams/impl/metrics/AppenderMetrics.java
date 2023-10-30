@@ -5,14 +5,14 @@
  * Licensed under the Zeebe Community License 1.1. You may not use this file
  * except in compliance with the Zeebe Community License 1.1.
  */
-package io.camunda.zeebe.logstreams.impl.flowcontrol;
+package io.camunda.zeebe.logstreams.impl.metrics;
 
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import io.prometheus.client.Histogram.Timer;
 
-final class AppenderMetrics {
+public final class AppenderMetrics {
   private static final Counter TOTAL_DEFERRED_APPEND_COUNT =
       Counter.build()
           .namespace("zeebe")
@@ -87,14 +87,14 @@ final class AppenderMetrics {
 
   public AppenderMetrics(final int partitionId) {
     final var partitionLabel = String.valueOf(partitionId);
-    this.deferredAppends = TOTAL_DEFERRED_APPEND_COUNT.labels(partitionLabel);
-    this.triedAppends = TOTAL_APPEND_TRY_COUNT.labels(partitionLabel);
-    this.inflightAppends = CURRENT_INFLIGHT.labels(partitionLabel);
-    this.inflightLimit = CURRENT_LIMIT.labels(partitionLabel);
-    this.lastCommitted = LAST_COMMITTED_POSITION.labels(partitionLabel);
-    this.lastWritten = LAST_WRITTEN_POSITION.labels(partitionLabel);
-    this.commitLatency = COMMIT_LATENCY.labels(partitionLabel);
-    this.appendLatency = WRITE_LATENCY.labels(partitionLabel);
+    deferredAppends = TOTAL_DEFERRED_APPEND_COUNT.labels(partitionLabel);
+    triedAppends = TOTAL_APPEND_TRY_COUNT.labels(partitionLabel);
+    inflightAppends = CURRENT_INFLIGHT.labels(partitionLabel);
+    inflightLimit = CURRENT_LIMIT.labels(partitionLabel);
+    lastCommitted = LAST_COMMITTED_POSITION.labels(partitionLabel);
+    lastWritten = LAST_WRITTEN_POSITION.labels(partitionLabel);
+    commitLatency = COMMIT_LATENCY.labels(partitionLabel);
+    appendLatency = WRITE_LATENCY.labels(partitionLabel);
   }
 
   public void increaseInflight() {
