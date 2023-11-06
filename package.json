@@ -1,0 +1,24 @@
+{
+  "name": "zeebe",
+  "version": "1.0.0",
+  "description": "[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.camunda.zeebe/camunda-zeebe/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.camunda.zeebe/camunda-zeebe)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "save": "git add . && git commit -m \"auto save\"",
+    "push": "npm run save && git push"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robin2017/zeebe.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/robin2017/zeebe/issues"
+  },
+  "homepage": "https://github.com/robin2017/zeebe#readme"
+}
