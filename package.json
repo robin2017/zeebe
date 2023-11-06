@@ -8,7 +8,8 @@
   },
   "scripts": {
     "save": "git add . && git commit -m \"auto save\"",
-    "push": "npm run save && git push"
+    "push": "npm run save && git push",
+    "deploy":"zbctl --insecure deploy ./robin-test/hello.bpmn"
   },
   "repository": {
     "type": "git",
