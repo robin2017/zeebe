@@ -10,7 +10,7 @@
     "save": "git add . && git commit -m \"auto save\"",
     "push": "npm run save && git push",
     "deploy":"zbctl --insecure deploy ./robin-test/hello.bpmn",
-    "instance":"zbctl create instance hello --variables '{\"name\":\"robin\"}'"
+    "instance":"zbctl --insecure create instance hello --variables '{\"name\":\"robin\"}'"
   },
   "repository": {
     "type": "git",

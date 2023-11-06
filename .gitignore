@@ -44,7 +44,10 @@ tngp-data
 .flattened-pom.xml
 
 hs_err*.log
-/data/
+/data-bak/
 /metrics/
 *.exe
 /clients/go/.idea/
+
+data-*/
+data/
