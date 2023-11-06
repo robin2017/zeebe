@@ -39,9 +39,9 @@ import org.rocksdb.RocksIterator;
  * </ul>
  */
 class TransactionalColumnFamily<
-        ColumnFamilyNames extends Enum<ColumnFamilyNames>,
-        KeyType extends DbKey,
-        ValueType extends DbValue>
+    ColumnFamilyNames extends Enum<ColumnFamilyNames>,
+    KeyType extends DbKey,
+    ValueType extends DbValue>
     implements ColumnFamily<KeyType, ValueType> {
 
   private final ZeebeTransactionDb<ColumnFamilyNames> transactionDb;
@@ -72,6 +72,7 @@ class TransactionalColumnFamily<
 
   @Override
   public void insert(final KeyType key, final ValueType value) {
+    System.out.println("数据库插入：" + key + "/" + value);
     ensureInOpenTransaction(
         transaction -> {
           columnFamilyContext.writeKey(key);
@@ -90,6 +91,7 @@ class TransactionalColumnFamily<
 
   @Override
   public void update(final KeyType key, final ValueType value) {
+    System.out.println("数据库更新：" + key + "/" + value);
     ensureInOpenTransaction(
         transaction -> {
           columnFamilyContext.writeKey(key);
@@ -107,6 +109,7 @@ class TransactionalColumnFamily<
 
   @Override
   public void upsert(final KeyType key, final ValueType value) {
+    System.out.println("数据库插入更新：" + key + "/" + value);
     ensureInOpenTransaction(
         transaction -> {
           columnFamilyContext.writeKey(key);
@@ -123,6 +126,7 @@ class TransactionalColumnFamily<
 
   @Override
   public ValueType get(final KeyType key) {
+
     ensureInOpenTransaction(
         transaction -> {
           columnFamilyContext.writeKey(key);
@@ -137,6 +141,7 @@ class TransactionalColumnFamily<
     final var valueBuffer = columnFamilyContext.getValueView();
     if (valueBuffer != null) {
       valueInstance.wrap(valueBuffer, 0, valueBuffer.capacity());
+      System.out.println("数据库获取：" + key + "/" + valueInstance);
       return valueInstance;
     }
     return null;
@@ -324,20 +329,21 @@ class TransactionalColumnFamily<
    *
    * @param prefix of all keys that are iterated over.
    * @param visitor called for all kv pairs where the key matches the given prefix. The visitor can
-   *     indicate whether iteration should continue or not, see {@link KeyValuePairVisitor}.
+   * indicate whether iteration should continue or not, see {@link KeyValuePairVisitor}.
    */
   private void forEachInPrefix(
       final DbKey prefix, final KeyValuePairVisitor<KeyType, ValueType> visitor) {
     forEachInPrefix(prefix, prefix, visitor);
   }
+
   /**
    * This is the preferred method to implement methods that iterate over a column family.
    *
    * @param startAt seek to this key before starting iteration. If null, seek to {@code prefix}
-   *     instead.
+   * instead.
    * @param prefix of all keys that are iterated over.
    * @param visitor called for all kv pairs where the key matches the given prefix. The visitor can
-   *     indicate whether iteration should continue or not, see {@link KeyValuePairVisitor}.
+   * indicate whether iteration should continue or not, see {@link KeyValuePairVisitor}.
    */
   private void forEachInPrefix(
       final DbKey startAt,

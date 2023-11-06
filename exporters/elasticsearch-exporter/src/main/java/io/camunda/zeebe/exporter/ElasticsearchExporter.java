@@ -43,6 +43,7 @@ public class ElasticsearchExporter implements Exporter {
 
   @Override
   public void configure(final Context context) {
+    System.out.println("==========come into ElasticsearchExporter configure =======");
     log = context.getLogger();
     configuration =
         context.getConfiguration().instantiate(ElasticsearchExporterConfiguration.class);
@@ -55,6 +56,7 @@ public class ElasticsearchExporter implements Exporter {
 
   @Override
   public void open(final Controller controller) {
+    System.out.println("==========come into ElasticsearchExporter open =======");
     this.controller = controller;
     client = createClient();
 
@@ -72,7 +74,7 @@ public class ElasticsearchExporter implements Exporter {
 
   @Override
   public void close() {
-
+    System.out.println("==========come into ElasticsearchExporter close =======");
     try {
       flush();
       updateLastExportedPosition();
@@ -91,6 +93,11 @@ public class ElasticsearchExporter implements Exporter {
 
   @Override
   public void export(final Record<?> record) {
+    System.out.println(
+        "==========come into ElasticsearchExporter export ==："
+            + record.getPosition()
+            + "/"
+            + record);
     if (!indexTemplatesCreated) {
       createIndexTemplates();
     }
@@ -144,6 +151,7 @@ public class ElasticsearchExporter implements Exporter {
 
   // TODO: remove this and instead allow client to be inject-able for testing
   protected ElasticsearchClient createClient() {
+    System.out.println("==========come into ElasticsearchExporter createClient =======");
     return new ElasticsearchClient(configuration);
   }
 
@@ -189,6 +197,7 @@ public class ElasticsearchExporter implements Exporter {
   }
 
   private void createIndexTemplates() {
+    System.out.println("==========come into ElasticsearchExporter createIndexTemplates =======");
     if (configuration.retention.isEnabled()) {
       createIndexLifecycleManagementPolicy();
     }

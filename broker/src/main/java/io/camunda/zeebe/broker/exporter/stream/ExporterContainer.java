@@ -109,7 +109,7 @@ final class ExporterContainer implements Controller {
 
   private void updateExporterState(final long eventPosition, final byte[] metadata) {
     if (position < eventPosition) {
-
+      // 只有更新的position才能存入rocksdb，过滤掉循环执行的任务
       DirectBuffer metadataBuffer = null;
       if (metadata != null) {
         metadataBuffer = BufferUtil.wrapArray(metadata);

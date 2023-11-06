@@ -9,6 +9,7 @@
   "scripts": {
     "save": "git add . && git commit -m \"auto save\"",
     "push": "npm run save && git push",
+    "mvnbuild": "cd exporters/elasticsearch-exporter &&   mvn clean install -DskipTests  -Dcheckstyle.skip=true",
     "deploy":"zbctl --insecure deploy ./robin-test/hello.bpmn",
     "instance":"zbctl --insecure create instance hello --variables '{\"name\":\"robin\"}'"
   },

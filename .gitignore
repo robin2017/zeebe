@@ -32,6 +32,7 @@ faces-config.NavData
 .cache-tests
 .dccachec
 .jqwik-database
+.idea
 
 *.DS_Store
 .java-version
